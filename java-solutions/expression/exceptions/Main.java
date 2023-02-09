@@ -6,6 +6,6 @@ public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         ExpressionParser parser = new ExpressionParser();
-        System.out.println(parser.parse(scanner.nextLine()));
+        System.out.println(parser.parse(scanner.nextLine()).evaluate(5,1,1));
     }
 }

@@ -48,7 +48,7 @@ public final class ExpressionParseStarter {
                 case '+', '-' -> 2;
                 case '*', '/' -> 3;
                 case 'c', 's' -> 1;
-                default -> throw new ParsingException("Expect operation symbol, actual: " + take());
+                default -> throw new IllegalOperationException("Illegal operation symbol: '" + take() + "'");
             };
         }
         private AbstractExpression parseAbstractExpression(AbstractExpression leftSide, String start, int to) {
@@ -79,7 +79,10 @@ public final class ExpressionParseStarter {
                     try {
                         expect("et");
                     } catch (IllegalArgumentException e) {
-                        throw new ParsingException("Expect: 'set', Actual: s" + take(), e);
+                        throw new ParsingException("Expect: 'set', Actual: 's" + take() +"'", e);
+                    }
+                    if (between('x', 'z') || between('0', '9')) {
+                        throw new ParsingException("Illegal operation: 'set" + take() + "'");
                     }
                     return parseAbstractExpression(new CheckedSet(leftSide, parseAbstractExpression(parseElement(), "", 1)), start, to);
                 }
@@ -87,7 +90,10 @@ public final class ExpressionParseStarter {
                     try {
                         expect("lear");
                     } catch (IllegalArgumentException e) {
-                        throw new ParsingException("Expect: 'clear', Actual: c" + take(), e);
+                        throw new ParsingException("Expect: 'clear', Actual: 'c" + take() + "'", e);
+                    }
+                    if (between('x', 'z') || between('0', '9')) {
+                        throw new ParsingException("Illegal operation: 'clear" + take() + "'");
                     }
                     return parseAbstractExpression(new CheckedClear(leftSide, parseAbstractExpression(parseElement(), "", 1)), start, to);
                 }
@@ -103,12 +109,42 @@ public final class ExpressionParseStarter {
                 return parseConst("");
             } else if (take('(')) {
                 return parseAbstractExpression(parseElement(), "(", 0);
+            } else if (take('c')) {
+                try {
+                    expect("ount");
+                } catch (IllegalArgumentException e) {
+                    throw new ParsingException("Expect 'count', actual: 'c" + take() + "'", e);
+                }
+                if (between('x', 'z') || between('0', '9')) {
+                    throw new ParsingException("Illegal operation: 'count" + take() + "'");
+                }
+                return new CheckedCount(parseElement());
             } else if (take('-')) {
                 if (between('1', '9')) {
                     return parseConst("-");
                 } else {
                     return new CheckedNegate(parseElement());
                 }
+            } else if (take('l')) {
+                try {
+                    expect("og10");
+                } catch (IllegalArgumentException e) {
+                    throw new ParsingException("Expect 'log10', actual: 'l" + take() + "'", e);
+                }
+                if (between('x', 'z') || between('0', '9')) {
+                    throw new ParsingException("Illegal operation: 'log10" + take() + "'");
+                }
+                return new CheckedLog10(parseElement());
+            } else if (take('p')) {
+                try {
+                    expect("ow10");
+                } catch (IllegalArgumentException e) {
+                    throw new ParsingException("Expect 'pow10', actual: 'p" + take() + "'", e);
+                }
+                if (between('x', 'z') || between('0', '9')) {
+                    throw new ParsingException("Illegal operation: 'pow10" + take() + "'");
+                }
+                return new CheckedPow10(parseElement());
             } else {
                 throw new ParsingException("Unsupported start of element: '" + take() + "'");
             }
@@ -123,7 +159,7 @@ public final class ExpressionParseStarter {
                 constant.append(take());
             }
             if (now('s') || now('c')) {
-                throw new WhitespacesException("Expect whitespaces before set and clear");
+                throw new WhitespacesException("Expect whitespaces before 'set' and 'clear'");
             }
             try {
                 return new Const(Integer.parseInt(constant.toString()));

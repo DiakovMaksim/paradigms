@@ -1,16 +1,10 @@
 package expression.parser;
 
-import java.util.Scanner;
+import expression.Multiply;
+import expression.Subtract;
 
 public class Main {
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        ExpressionParser expressionParser = new ExpressionParser();
-        String input = scanner.nextLine();
-        try {
-            System.out.println(expressionParser.parse(input));
-        } catch (Exception e) {
-            System.out.println("err");
-        }
+        System.out.println(new Add(new Subtract(new expression.Multiply(new Variable("x"), new Variable("x")), new Multiply(new Const(2), new Variable("x"))), new Const(1)).evaluate(Integer.parseInt(args[0])));
     }
 }
