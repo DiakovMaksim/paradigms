@@ -1,4 +1,4 @@
-package expression.exceptions;
+package expression.parser;
 
 import expression.TripleExpression;
 
