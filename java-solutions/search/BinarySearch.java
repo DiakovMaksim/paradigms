@@ -23,7 +23,7 @@ public class BinarySearch {
             a[i] = Integer.parseInt(args[i + 1]);
             s += a[i];
             // args.length > 0 && (foreach s : args) {s - > int} && x = Integer.parseInt(args[0]) &&
-            // (foreach i in 1..i+1) {a[i] = Integer.parseInt(args[i+1]) &&
+            // (foreach i in 1..i+1) {a[i-1] = Integer.parseInt(args[i]) &&
             // (foreach i in 2..args.length-1) {Integer.parseInt(args[i]) <= Integer.parseInt(args[i-1])}
             i++;
             // args.length > 0 && (foreach s : args) {s - > int} && x = Integer.parseInt(args[0]) &&
