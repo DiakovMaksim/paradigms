@@ -1,5 +1,6 @@
 package queue;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 /*
@@ -47,6 +48,10 @@ remove
 Pred: true
 Post: immutable(n) && R = a
 toArray
+
+Pred: true
+Post: n' == n && immutable(n) && R = a.toString()
+toStr
  */
 public class ArrayQueue {
     private Object[] elements = new Object[2];
@@ -151,5 +156,11 @@ public class ArrayQueue {
             position++;
         }
         return copy;
+    }
+//    Pred: true
+//    Post: n' == n && immutable(n) && R = a.toString()
+//    toStr
+    public String toStr() {
+        return Arrays.toString(toArray());
     }
 }
