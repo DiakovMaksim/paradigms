@@ -43,6 +43,10 @@ peek
 Pred: n >= 1
 Post: n' === n - 1 && immutable(n') && R = a[n]
 remove
+
+Pred: true
+Post: immutable(n) && R = a
+toArray
  */
 public class ArrayQueueADT {
     private Object[] elements = new Object[2];
@@ -125,16 +129,27 @@ public class ArrayQueueADT {
 //    peek
     public static Object peek(final ArrayQueueADT queue) {
         assert queue.size != 0;
-        queue.size--;
-        return queue.elements[(queue.tail + 1) % queue.elements.length];
+        return queue.elements[(queue.tail - 1 + queue.elements.length) % queue.elements.length];
     }
 //    Pred: n >= 1 && queue != null
-//    Post: n' === n - 1 && immutable(n') && R = a[n]
+//    Post: n' == n - 1 && immutable(n') && R = a[n]
 //    remove
     public static Object remove(final ArrayQueueADT queue) {
         assert queue.size != 0;
         queue.size--;
         queue.tail = (queue.tail - 1 + queue.elements.length) % queue.elements.length;
         return queue.elements[queue.tail];
+    }
+//    Pred: queue != null
+//    Post: immutable(n) && R = a
+//    toArray
+    public static Object[] toArray(final ArrayQueueADT queue) {
+        Object[] copy = new Object[queue.size];
+        int position = 0;
+        for (int i = (queue.head + 1) % queue.elements.length; i != queue.tail; i = (i + 1) % queue.elements.length) {
+            copy[position] = queue.elements[i];
+            position++;
+        }
+        return copy;
     }
 }

@@ -43,6 +43,10 @@ peek
 Pred: n >= 1
 Post: n' === n - 1 && immutable(n') && R = a[n]
 remove
+
+Pred: true
+Post: immutable(n) && R = a
+toArray
  */
 public class ArrayQueueModule {
     private static Object[] elements = new Object[2];
@@ -125,16 +129,27 @@ public class ArrayQueueModule {
 //    peek
     public static Object peek() {
         assert size != 0;
-        size--;
-        return elements[(tail + 1) % elements.length];
+        return elements[(tail - 1 + elements.length) % elements.length];
     }
 //    Pred: n >= 1
-//    Post: n' === n - 1 && immutable(n') && R = a[n]
+//    Post: n' == n - 1 && immutable(n') && R = a[n]
 //    remove
     public static Object remove() {
         assert size != 0;
         size--;
         tail = (tail - 1 + elements.length) % elements.length;
         return elements[tail];
+    }
+//    Pred: true
+//    Post: immutable(n) && R = a
+//    toArray
+    public static Object[] toArray() {
+        Object[] copy = new Object[size];
+        int position = 0;
+        for (int i = (head + 1) % elements.length; i != tail; i = (i + 1) % elements.length) {
+            copy[position] = elements[i];
+            position++;
+        }
+        return copy;
     }
 }
