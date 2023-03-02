@@ -59,6 +59,7 @@ public class ArrayQueueADT {
 //    enqueue(element)
     public static void enqueue(final ArrayQueueADT queue, final Object element) {
         Objects.requireNonNull(element);
+        Objects.requireNonNull(queue);
         ensureCapacity(queue);
         queue.elements[queue.tail] = element;
         queue.tail = (queue.tail + 1) % queue.elements.length;
@@ -82,6 +83,7 @@ public class ArrayQueueADT {
 //    Post: immutable(n) && R = a[1] && n' == n
 //    element
     public static Object element(final ArrayQueueADT queue) {
+        Objects.requireNonNull(queue);
         assert queue.size != 0;
         return queue.elements[(queue.head + 1) % queue.elements.length];
     }
@@ -89,6 +91,7 @@ public class ArrayQueueADT {
 //    Post: n' == n - 1 && for i=1..n': a'[i] == a[i + 1] && R = a[1]
 //    dequeue
     public static Object dequeue(final ArrayQueueADT queue) {
+        Objects.requireNonNull(queue);
         assert queue.size != 0;
         queue.head = (queue.head + 1) % queue.elements.length;
         queue.size--;
@@ -98,18 +101,21 @@ public class ArrayQueueADT {
 //    Post: immutable(n) && R = n && n' == n
 //    size
     public static int size(final ArrayQueueADT queue) {
+        Objects.requireNonNull(queue);
         return queue.size;
     }
 //    Pred: true && queue != null
 //    Post: immutable(n) && R = (n == 0) && n' == n
 //    isEmpty
     public static boolean isEmpty(final ArrayQueueADT queue) {
+        Objects.requireNonNull(queue);
         return queue.size == 0;
     }
 //    Pred: true && queue != null
 //    Post: n' = 0
 //    clear
     public static void clear(final ArrayQueueADT queue) {
+        Objects.requireNonNull(queue);
         queue.head = 0;
         queue.tail = 1;
         queue.size = 0;
@@ -119,6 +125,7 @@ public class ArrayQueueADT {
 //    push(element)
     public static void push(final ArrayQueueADT queue, final Object element) {
         Objects.requireNonNull(element);
+        Objects.requireNonNull(queue);
         ensureCapacity(queue);
         queue.elements[queue.head] = element;
         queue.head = (queue.head - 1 + queue.elements.length) % queue.elements.length;
@@ -128,6 +135,7 @@ public class ArrayQueueADT {
 //    Post: immutable(n) && R = a[n] && n' == n
 //    peek
     public static Object peek(final ArrayQueueADT queue) {
+        Objects.requireNonNull(queue);
         assert queue.size != 0;
         return queue.elements[(queue.tail - 1 + queue.elements.length) % queue.elements.length];
     }
@@ -135,6 +143,7 @@ public class ArrayQueueADT {
 //    Post: n' == n - 1 && immutable(n') && R = a[n]
 //    remove
     public static Object remove(final ArrayQueueADT queue) {
+        Objects.requireNonNull(queue);
         assert queue.size != 0;
         queue.size--;
         queue.tail = (queue.tail - 1 + queue.elements.length) % queue.elements.length;
@@ -144,6 +153,7 @@ public class ArrayQueueADT {
 //    Post: immutable(n) && R = a
 //    toArray
     public static Object[] toArray(final ArrayQueueADT queue) {
+        Objects.requireNonNull(queue);
         Object[] copy = new Object[queue.size];
         int position = 0;
         for (int i = (queue.head + 1) % queue.elements.length; i != queue.tail; i = (i + 1) % queue.elements.length) {
