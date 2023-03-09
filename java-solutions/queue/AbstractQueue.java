@@ -90,16 +90,14 @@ public class AbstractQueue implements Queue{
     }
     @Override
     public int count(Object element) {
-        Object[] copy = new Object[size];
-        int position = 0;
+        Object temp;
         int result = 0;
         for (int i = 0; i < size; i++) {
-            copy[position] = dequeue();
-            if (copy[position].equals(element)) {
+            temp = dequeue();
+            if (temp.equals(element)) {
                 result++;
             }
-            enqueue(copy[position]);
-            position++;
+            enqueue(temp);
         }
         return result;
     }
