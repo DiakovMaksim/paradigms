@@ -1,8 +1,5 @@
 package queue;
 
-import java.util.Arrays;
-import java.util.Objects;
-
 /*
 Model: a[1]..a[n]
 Invariant: n >= 0 && for i=1..n:a[i] != null
@@ -53,21 +50,19 @@ Pred: true
 Post: n' == n && immutable(n) && R = a.toString()
 toStr
  */
-public class ArrayQueue {
+public class ArrayQueue extends AbstractQueue {
     private Object[] elements = new Object[2];
     private int head = 0;
     private int tail = 1;
-    private int size = 0;
 
 //    Pred: element != null
 //    Post: n' = n + 1 && a[n'] == element && immutable(n)
 //    enqueue(element)
-    public void enqueue(final Object element) {
-        Objects.requireNonNull(element);
+    @Override
+    protected void enqueueImpl(final Object element) {
         ensureCapacity();
         elements[tail] = element;
         tail = (tail + 1) % elements.length;
-        size++;
     }
 
     private void ensureCapacity() {
@@ -86,6 +81,7 @@ public class ArrayQueue {
 //    Pred: n >= 1
 //    Post: immutable(n) && R = a[1] && n' == n
 //    element
+    @Override
     public Object element() {
         assert size != 0;
         return elements[(head + 1) % elements.length];
@@ -93,45 +89,34 @@ public class ArrayQueue {
 //    Pred: n >= 1
 //    Post: n' == n - 1 && for i=1..n': a'[i] == a[i + 1] && R = a[1]
 //    dequeue
-    public Object dequeue() {
-        assert size != 0;
+    @Override
+    public Object dequeueImpl() {
         head = (head + 1) % elements.length;
-        size--;
         return elements[head];
-    }
-//    Pred: true
-//    Post: immutable(n) && R = n && n' == n
-//    size
-    public int size() {
-        return size;
-    }
-//    Pred: true
-//    Post: immutable(n) && R = (n == 0) && n' == n
-//    isEmpty
-    public boolean isEmpty() {
-        return size == 0;
     }
 //    Pred: true
 //    Post: n' = 0
 //    clear
+    @Override
     public void clear() {
         head = 0;
         tail = 1;
         size = 0;
+        elements = new Object[2];
     }
 //    Pred: element != null
 //    Post: n' == n + 1 && for i=2..n': a'[i] = a[i - 1] && a'[1] == element
 //    push(element)
-    public void push(final Object element) {
-        Objects.requireNonNull(element);
+    @Override
+    public void pushImpl(final Object element) {
         ensureCapacity();
         elements[head] = element;
         head = (head - 1 + elements.length) % elements.length;
-        size++;
     }
 //    Pred: n >= 1
 //    Post: immutable(n) && R = a[n] && n' == n
 //    peek
+    @Override
     public Object peek() {
         assert size != 0;
         return elements[(tail - 1 + elements.length) % elements.length];
@@ -139,15 +124,15 @@ public class ArrayQueue {
 //    Pred: n >= 1
 //    Post: n' == n - 1 && immutable(n') && R = a[n]
 //    remove
-    public Object remove() {
-        assert size != 0;
-        size--;
+    @Override
+    public Object removeImpl() {
         tail = (tail - 1 + elements.length) % elements.length;
         return elements[tail];
     }
 //    Pred: true
 //    Post: n' == n && immutable(n) && R = a
 //    toArray
+    @Override
     public Object[] toArray() {
         Object[] copy = new Object[size];
         int position = 0;
@@ -157,10 +142,14 @@ public class ArrayQueue {
         }
         return copy;
     }
-//    Pred: true
-//    Post: n' == n && immutable(n) && R = a.toString()
-//    toStr
-    public String toStr() {
-        return Arrays.toString(toArray());
+    @Override
+    public int count(Object element) {
+        int result = 0;
+        for (int i = (head + 1) % elements.length; i != tail; i = (i + 1) % elements.length) {
+            if (elements[i].equals(element)) {
+                result++;
+            }
+        }
+        return result;
     }
 }
