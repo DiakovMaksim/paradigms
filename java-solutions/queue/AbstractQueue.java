@@ -77,10 +77,9 @@ public class AbstractQueue implements Queue{
         Object[] copy = new Object[size];
         int position = 0;
         for (int i = 0; i < size; i++) {
-            copy[position++] = dequeue();
-        }
-        for (Object back : copy) {
-            enqueue(back);
+            copy[position] = dequeue();
+            enqueue(copy[position]);
+            position++;
         }
         return copy;
     }
@@ -95,13 +94,12 @@ public class AbstractQueue implements Queue{
         int position = 0;
         int result = 0;
         for (int i = 0; i < size; i++) {
-            copy[position++] = dequeue();
-        }
-        for (Object back : copy) {
-            if (back.equals(element)) {
+            copy[position] = dequeue();
+            if (copy[position].equals(element)) {
                 result++;
             }
-            enqueue(back);
+            enqueue(copy[position]);
+            position++;
         }
         return result;
     }

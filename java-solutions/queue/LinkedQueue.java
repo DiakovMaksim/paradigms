@@ -71,18 +71,6 @@ public class LinkedQueue extends AbstractQueue {
         tail = new Node(null, null, tail.next.next);
         return result;
     }
-    @Override
-    public int count(Object element) {
-        Node temp = head.prev;
-        int result = 0;
-        while (temp.element != null) {
-            if (temp.element.equals(element)) {
-                result++;
-            }
-            temp = temp.prev;
-        }
-        return result;
-    }
     private static class Node {
         private Object element;
         private Node prev;

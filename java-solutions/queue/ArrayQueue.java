@@ -129,27 +129,4 @@ public class ArrayQueue extends AbstractQueue {
         tail = (tail - 1 + elements.length) % elements.length;
         return elements[tail];
     }
-//    Pred: true
-//    Post: n' == n && immutable(n) && R = a
-//    toArray
-    @Override
-    public Object[] toArray() {
-        Object[] copy = new Object[size];
-        int position = 0;
-        for (int i = (head + 1) % elements.length; i != tail; i = (i + 1) % elements.length) {
-            copy[position] = elements[i];
-            position++;
-        }
-        return copy;
-    }
-    @Override
-    public int count(Object element) {
-        int result = 0;
-        for (int i = (head + 1) % elements.length; i != tail; i = (i + 1) % elements.length) {
-            if (elements[i].equals(element)) {
-                result++;
-            }
-        }
-        return result;
-    }
 }
