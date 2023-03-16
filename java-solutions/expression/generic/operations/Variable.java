@@ -23,13 +23,4 @@ public class Variable<T> implements AbstractExpression<T> {
     public String toString() {
         return Character.toString(name);
     }
-
-    @Override
-    public boolean equals(Object comparior) {
-        return false;
-    }
-    @Override
-    public int hashCode() {
-        return name * 113;
-    }
 }

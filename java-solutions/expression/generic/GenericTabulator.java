@@ -8,15 +8,16 @@ public class GenericTabulator implements Tabulator {
 
     @Override
     public Object[][][] tabulate(String mode, String expression, int x1, int x2, int y1, int y2, int z1, int z2) throws Exception {
-        return switch (mode) {
-            case ("i") -> fillMatrix(new IntegerType(), expression, x1, x2, y1, y2, z1, z2);
-            case ("bi") -> fillMatrix(new BigIntegerType(), expression, x1, x2, y1, y2, z1, z2);
-            case ("d") -> fillMatrix(new DoubleType(), expression, x1, x2, y1, y2, z1, z2);
-            case ("u") -> fillMatrix(new UncheckedIntegerType(), expression, x1, x2, y1, y2, z1, z2);
-            case ("f") -> fillMatrix(new FloatType(), expression, x1, x2, y1, y2, z1, z2);
-            case ("s") -> fillMatrix(new ShortType(), expression, x1, x2, y1, y2, z1, z2);
+        Type<?> type = switch (mode) {
+            case ("i") -> new IntegerType();
+            case ("bi") -> new BigIntegerType();
+            case ("d") -> new DoubleType();
+            case ("u") -> new UncheckedIntegerType();
+            case ("f") -> new FloatType();
+            case ("s") -> new ShortType();
             default -> null;
         };
+        return fillMatrix(type, expression, x1, x2, y1, y2, z1, z2);
     }
     private <T> Object[][][] fillMatrix(Type<T> type,  String expression, int x1, int x2, int y1, int y2, int z1, int z2) {
         ExpressionParseStarter<T> parser = new ExpressionParseStarter<>(type);

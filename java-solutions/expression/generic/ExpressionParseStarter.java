@@ -7,6 +7,8 @@ import expression.parser.BaseParser;
 import expression.parser.CharSource;
 import expression.parser.StringSource;
 
+import java.util.Objects;
+
 public final class ExpressionParseStarter<T> {
     Type<T> type;
 
@@ -57,7 +59,6 @@ public final class ExpressionParseStarter<T> {
             return switch (enter) {
                 case '+', '-' -> 2;
                 case '*', '/' -> 3;
-                case 'c', 's' -> 1;
                 default -> throw new IllegalOperationException("Illegal operation symbol: '" + take() + "'");
             };
         }
@@ -65,7 +66,7 @@ public final class ExpressionParseStarter<T> {
             skipWhitespace();
             if (!eof()) {
                 if (now(')')) {
-                    if (start == "(") {
+                    if (Objects.equals(start, "(")) {
                         take(')');
                     }
                     return leftSide;
@@ -85,28 +86,6 @@ public final class ExpressionParseStarter<T> {
                 if (take('/')) {
                     return parseAbstractExpression(new Divide<T>(leftSide, parseAbstractExpression(parseElement(), "", 3), type), start, to);
                 }
-                if (take('s')) {
-                    try {
-                        expect("et");
-                    } catch (IllegalArgumentException e) {
-                        throw new ParsingException("Expect: 'set', Actual: 's" + take() +"'", e);
-                    }
-                    if (between('x', 'z') || between('0', '9')) {
-                        throw new ParsingException("Illegal operation: 'set" + take() + "'");
-                    }
-                    return parseAbstractExpression(new Set<>(leftSide, parseAbstractExpression(parseElement(), "", 1), type), start, to);
-                }
-                if (take('c')) {
-                    try {
-                        expect("lear");
-                    } catch (IllegalArgumentException e) {
-                        throw new ParsingException("Expect: 'clear', Actual: 'c" + take() + "'", e);
-                    }
-                    if (between('x', 'z') || between('0', '9')) {
-                        throw new ParsingException("Illegal operation: 'clear" + take() + "'");
-                    }
-                    return parseAbstractExpression(new Clear<>(leftSide, parseAbstractExpression(parseElement(), "", 1), type), start, to);
-                }
             }
             return leftSide;
         }
@@ -119,49 +98,19 @@ public final class ExpressionParseStarter<T> {
                 return parseConst("");
             } else if (take('(')) {
                 return parseAbstractExpression(parseElement(), "(", 0);
-            } else if (take('c')) {
-                try {
-                    expect("ount");
-                } catch (IllegalArgumentException e) {
-                    throw new ParsingException("Expect 'count', actual: 'c" + take() + "'", e);
-                }
-                if (between('x', 'z') || between('0', '9')) {
-                    throw new ParsingException("Illegal operation: 'count" + take() + "'");
-                }
-                return new Count<>(parseElement(), type);
             } else if (take('-')) {
                 if (between('1', '9')) {
                     return parseConst("-");
                 } else {
                     return new Negate<>(parseElement(), type);
                 }
-            } else if (take('l')) {
-                try {
-                    expect("og10");
-                } catch (IllegalArgumentException e) {
-                    throw new ParsingException("Expect 'log10', actual: 'l" + take() + "'", e);
-                }
-                if (between('x', 'z') || between('0', '9')) {
-                    throw new ParsingException("Illegal operation: 'log10" + take() + "'");
-                }
-                return new Log<>(parseElement(), type);
-            } else if (take('p')) {
-                try {
-                    expect("ow10");
-                } catch (IllegalArgumentException e) {
-                    throw new ParsingException("Expect 'pow10', actual: 'p" + take() + "'", e);
-                }
-                if (between('x', 'z') || between('0', '9')) {
-                    throw new ParsingException("Illegal operation: 'pow10" + take() + "'");
-                }
-                return new Pow<T>(parseElement(), type);
             } else {
                 throw new ParsingException("Unsupported start of element: '" + take() + "'");
             }
         }
 
         private Variable<T> parseVariable() {
-            return new Variable(String.valueOf(take()));
+            return new Variable<>(String.valueOf(take()));
         }
         private Const<T> parseConst(String sign) {
             StringBuilder constant = new StringBuilder(sign);

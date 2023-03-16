@@ -2,7 +2,6 @@ package expression.generic.operations;
 
 import expression.generic.types.Type;
 
-import java.util.Objects;
 
 public abstract class AbstractUnaryOperation<T> implements AbstractExpression<T> {
     protected AbstractExpression<T> expression;
@@ -25,20 +24,5 @@ public abstract class AbstractUnaryOperation<T> implements AbstractExpression<T>
     @Override
     public String toString() {
         return symbol + "(" + expression + ")";
-    }
-
-    @Override
-    public boolean equals(Object comparior) {
-        return comparior != null && this.getClass() == comparior.getClass() &&
-                Objects.equals(this.symbol, ((AbstractUnaryOperation<?>) comparior).symbol) &&
-                this.expression.equals(((AbstractUnaryOperation<?>) comparior).expression);
-    }
-
-    @Override
-    public int hashCode() {
-        return switch (symbol) {
-            case ("-") -> 601 * (expression.hashCode() * 19);
-            default -> 0;
-        };
     }
 }

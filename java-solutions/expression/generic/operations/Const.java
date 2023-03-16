@@ -16,14 +16,4 @@ public class Const<T> implements AbstractExpression<T> {
     public String toString() {
         return value.toString();
     }
-
-    @Override
-    public boolean equals(Object comparior) {
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return 0;
-    }
 }
