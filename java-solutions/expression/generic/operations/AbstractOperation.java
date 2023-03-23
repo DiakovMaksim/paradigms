@@ -6,16 +6,17 @@ public abstract class AbstractOperation<T> implements AbstractExpression<T> {
     protected AbstractExpression<T> firstExpression;
     protected AbstractExpression<T> secondExpression;
     protected Type<T> type;
-    protected char symbol;
 
-    public AbstractOperation(AbstractExpression<T> firstExpression, AbstractExpression<T> secondExpression, Type<T> type, char symbol) {
+    public AbstractOperation(AbstractExpression<T> firstExpression, AbstractExpression<T> secondExpression, Type<T> type) {
         this.firstExpression = firstExpression;
         this.secondExpression = secondExpression;
         this.type = type;
-        this.symbol = symbol;
     }
 
     protected abstract T calculate(T left, T right);
+    protected String getSymbol() {
+        return "";
+    }
 
     @Override
     public T evaluate(T x, T y, T z) {
@@ -24,6 +25,6 @@ public abstract class AbstractOperation<T> implements AbstractExpression<T> {
 
     @Override
     public String toString() {
-        return "(" + firstExpression + " " + symbol + " " + secondExpression + ")";
+        return "(" + firstExpression + " " + this.getSymbol() + " " + secondExpression + ")";
     }
 }

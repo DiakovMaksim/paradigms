@@ -6,12 +6,10 @@ import expression.generic.types.Type;
 public abstract class AbstractUnaryOperation<T> implements AbstractExpression<T> {
     protected AbstractExpression<T> expression;
     protected Type<T> type;
-    String symbol;
 
-    public AbstractUnaryOperation(AbstractExpression<T> expression, Type<T> type, String symbol) {
+    public AbstractUnaryOperation(AbstractExpression<T> expression, Type<T> type) {
         this.expression = expression;
         this.type = type;
-        this.symbol = symbol;
     }
 
     protected abstract T calculate(T value);
@@ -20,9 +18,11 @@ public abstract class AbstractUnaryOperation<T> implements AbstractExpression<T>
     public T evaluate(T x, T y, T z) {
         return calculate(expression.evaluate(x, y, z));
     }
-
+    protected String getSymbol() {
+        return "";
+    }
     @Override
     public String toString() {
-        return symbol + "(" + expression + ")";
+        return this.getSymbol() + "(" + expression + ")";
     }
 }
