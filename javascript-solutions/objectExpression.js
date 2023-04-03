@@ -1,13 +1,6 @@
 "use strict"
-const operations = new Map([
-    ["+", [Add, 2]],
-    ["-", [Subtract, 2]],
-    ["*", [Multiply, 2]],
-    ["/", [Divide, 2]],
-    ["negate", [Negate, 1]],
-    ["exp", [Exp, 1]],
-    ["ln", [Ln, 1]]
-])
+const operations = new Map([])
+
 function ArrToStr(arr) {
     let s = ""
     while (arr.length > 0) {
@@ -15,6 +8,7 @@ function ArrToStr(arr) {
     }
     return s
 }
+
 function Const(value) {
     this.toString = () => (String)(value)
     this.evaluate = () => value
@@ -25,54 +19,50 @@ function Variable(name) {
     this.evaluate = (x, y, z) => name === "x" ? x : name === "y" ? y : z
 }
 
-function AbstractOperation(args) {
-    this.args = args
+function AbstractOperation(name, f, n, string, ...args) {
+    operations.set(string, [name, n, f])
+    this.getName = () => string
+    this.args = new Array(...args)
 }
-AbstractOperation.prototype.toString = function () {return ArrToStr(this.args.map(i => i.toString() + " ")) + this.getName()}
-AbstractOperation.prototype.evaluate = function (x, y, z) {return this.eval(...(this.args.map(i => i.evaluate(x, y, z))))}
-
-function Add(left, right) {
-    AbstractOperation.call(this, [left, right])
-    this.eval = (left, right) => left + right
-    this.getName = () => "+"
+AbstractOperation.prototype.toString = function () {
+    return ArrToStr(this.args.map(i => i.toString() + " ")) + this.getName()
+}
+AbstractOperation.prototype.evaluate = function (x, y, z) {
+    return operations.get(this.getName())[2](...(this.args.map(i => i.evaluate(x, y, z))))
+}
+function Add() {
+    AbstractOperation.call(this, Add, (left, right) => left + right, 2, "+", ...arguments)
 }
 Add.prototype = Object.create(AbstractOperation.prototype)
-function Subtract(left, right) {
-    AbstractOperation.call(this, [left, right])
-    this.eval = (left, right) => left - right
-    this.getName = () => "-"
+function Subtract() {
+    AbstractOperation.call(this, Subtract, (left, right) => left - right, 2, "-", ...arguments)
 }
 Subtract.prototype = Object.create(AbstractOperation.prototype)
-function Multiply(left, right) {
-    AbstractOperation.call(this, [left, right])
-    this.eval = (left, right) => left * right
-    this.getName = () => "*"
+
+function Multiply() {
+    AbstractOperation.call(this, Multiply, (left, right) => left * right, 2, "*", ...arguments)
 }
 Multiply.prototype = Object.create(AbstractOperation.prototype)
-function Divide(left, right) {
-    AbstractOperation.call(this, [left, right])
-    this.eval = (left, right) => (left / right)
-    this.getName = () => "/"
+
+function Divide() {
+    AbstractOperation.call(this, Divide, (left, right) => left / right, 2, "/", ...arguments)
 }
 Divide.prototype = Object.create(AbstractOperation.prototype)
-function Negate(value) {
-    AbstractOperation.call(this, [value])
-    this.eval = value => -value
-    this.getName = () => "negate"
+
+function Negate() {
+    AbstractOperation.call(this, Negate, (operand) => -operand, 1, "negate", ...arguments)
 }
 Negate.prototype = Object.create(AbstractOperation.prototype)
-function Exp(value) {
-    AbstractOperation.call(this, [value])
-    this.eval = value => Math.exp(value)
-    this.getName = () => "exp"
+function Exp() {
+    AbstractOperation.call(this, Exp, (operand) => Math.exp(operand), 1, "exp", ...arguments)
 }
 Exp.prototype = Object.create(AbstractOperation.prototype)
-function Ln(value) {
-    AbstractOperation.call(this, [value])
-    this.eval = (value) => Math.log(value)
-    this.getName = () => "ln"
+
+function Ln() {
+    AbstractOperation.call(this, Ln, (operand) => Math.log(operand), 1, "ln", ...arguments)
 }
 Ln.prototype = Object.create(AbstractOperation.prototype)
+
 const parse = expression => {
     expression = expression.split(' ').filter(part => part.length > 0)
     let stack = []
