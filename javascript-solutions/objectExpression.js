@@ -1,6 +1,9 @@
 "use strict"
+//:NOTE: use semicolons `;`
+
 const operations = new Map([])
 
+//:NOTE: arr.join(" ");
 function ArrToStr(arr) {
     let s = ""
     while (arr.length > 0) {
@@ -10,6 +13,7 @@ function ArrToStr(arr) {
 }
 
 function Const(value) {
+    //:NOTE: .toString()
     this.toString = () => (String)(value)
     this.evaluate = () => value
     this.prefix = this.toString
@@ -17,6 +21,7 @@ function Const(value) {
 
 function Variable(name) {
     this.toString = () => name
+    //:NOTE: difficult to extend
     this.evaluate = (x, y, z) => name === "x" ? x : name === "y" ? y : z
     this.prefix = this.toString
 }
@@ -24,6 +29,7 @@ function Variable(name) {
 function AbstractOperation(name, f, n, string, ...args) {
     operations.set(string, [name, n, f])
     this.getName = () => string
+    //:NOTE: this.args = args;
     this.args = new Array(...args)
 }
 
@@ -37,6 +43,10 @@ AbstractOperation.prototype.evaluate = function (x, y, z) {
     return operations.get(this.getName())[2](...(this.args.map(i => i.evaluate(x, y, z))))
 }
 
+
+//:NOTE: Хочется, чтобы добавление операции выглядело так:
+// const Sin = createOperation(1, 'sin', Math.sin);
+// А не паста по типу .call и .prototype
 function Add() {
     AbstractOperation.call(this, Add, (left, right) => left + right, 2, "+", ...arguments)
 }
@@ -83,6 +93,7 @@ const parse = expression => {
     expression = expression.split(' ').filter(part => part.length > 0)
     let stack = []
     expression.map(s => {
+        //:NOTE: s in operations
             if (operations.get(s) !== undefined) {
                 let elems = stack.slice(-operations.get(s)[1])
                 stack = stack.slice(0, -operations.get(s)[1])
