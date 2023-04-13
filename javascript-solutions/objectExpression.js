@@ -9,16 +9,16 @@ const variables = new Map([
 function Const(value) {
     this.value = value;
 }
-Const.prototype.toString = function () {return (this.value).toString()};
-Const.prototype.evaluate = function () {return this.value};
+Const.prototype.toString = function () { return (this.value).toString() };
+Const.prototype.evaluate = function () { return this.value };
 Const.prototype.prefix = Const.toString;
 
 function Variable(name) {
     this.name = name;
 }
-Variable.prototype.toString = function () {return this.name};
-Variable.prototype.evaluate = function (...args) {return args[variables.get(this.name)]};
-Variable.prototype.prefix = Variable.toString;
+Variable.prototype.toString = function () { return this.name };
+Variable.prototype.evaluate = function (...args) { return args[variables.get(this.name)] };
+Variable.prototype.prefix = Variable.prototype.toString;
 function AbstractOperation(string, ...args) {
     this.getName = () => string;
     this.args = args;
@@ -31,7 +31,7 @@ AbstractOperation.prototype.prefix = function () {
     return `(${this.getName()} ${this.args.map(i => i.prefix()).join(" ")})`;
 }
 AbstractOperation.prototype.evaluate = function (...args) {
-    return operations.get(this.getName())[2](...(this.args.map(i => i.evaluate(...args))));
+    return this.f(...(this.args.map(i => i.evaluate(...args))));
 }
 
 function createOperation(f, n, string) {
@@ -40,6 +40,7 @@ function createOperation(f, n, string) {
     }
     operations.set(string, [result, n, f]);
     result.prototype = Object.create(AbstractOperation.prototype);
+    result.prototype.f = f;
     return result;
 }
 
