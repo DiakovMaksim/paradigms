@@ -1,11 +1,12 @@
 "use strict"
-const operations = new Map([]);
+const operations = new Map();
 const variables = new Map([
     ["x", 0],
     ["y", 1],
     ["z", 2]
 ]);
 
+// :NOTE: use prototype
 function Const(value) {
     this.toString = () => (value).toString();
     this.evaluate = () => value;
@@ -19,6 +20,7 @@ function Variable(name) {
 }
 
 function AbstractOperation(name, f, n, string, ...args) {
+    // :NOTE: один раз
     operations.set(string, [name, n, f]);
     this.getName = () => string;
     this.args = args;
@@ -36,6 +38,7 @@ AbstractOperation.prototype.evaluate = function (...args) {
 
 function createOperation(f, n, string) {
     const result = function () {
+        // не передавать в конструктор
         AbstractOperation.call(this, result, f, n, string, ...arguments);
     }
     result.prototype = Object.create(AbstractOperation.prototype);
@@ -49,6 +52,7 @@ const Divide = createOperation((a, b) => a / b, 2, "/");
 const Negate = createOperation(a => -a, 1, "negate");
 const Exp = createOperation(a => Math.exp(a), 1, "exp");
 const Ln = createOperation(a => Math.log(a), 1, "ln");
+
 const parse = expression => {
     expression = expression.split(' ').filter(part => part.length > 0);
     let stack = [];
