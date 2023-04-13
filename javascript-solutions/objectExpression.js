@@ -1,5 +1,5 @@
 "use strict"
-const operations = new Map([]);
+const operations = new Map();
 const variables = new Map([
     ["x", 0],
     ["y", 1],
@@ -7,19 +7,19 @@ const variables = new Map([
 ]);
 
 function Const(value) {
-    this.toString = () => (value).toString();
-    this.evaluate = () => value;
-    this.prefix = this.toString;
+    this.value = value;
 }
+Const.prototype.toString = function () {return (this.value).toString()};
+Const.prototype.evaluate = function () {return this.value};
+Const.prototype.prefix = Const.toString;
 
 function Variable(name) {
-    this.toString = () => name;
-    this.evaluate = (...args) => args[variables.get(name)];
-    this.prefix = this.toString;
+    this.name = name;
 }
-
-function AbstractOperation(name, f, n, string, ...args) {
-    operations.set(string, [name, n, f]);
+Variable.prototype.toString = function () {return this.name};
+Variable.prototype.evaluate = function (...args) {return args[variables.get(this.name)]};
+Variable.prototype.prefix = Variable.toString;
+function AbstractOperation(string, ...args) {
     this.getName = () => string;
     this.args = args;
 }
@@ -36,8 +36,9 @@ AbstractOperation.prototype.evaluate = function (...args) {
 
 function createOperation(f, n, string) {
     const result = function () {
-        AbstractOperation.call(this, result, f, n, string, ...arguments);
+        AbstractOperation.call(this, string, ...arguments);
     }
+    operations.set(string, [result, n, f]);
     result.prototype = Object.create(AbstractOperation.prototype);
     return result;
 }
@@ -49,6 +50,8 @@ const Divide = createOperation((a, b) => a / b, 2, "/");
 const Negate = createOperation(a => -a, 1, "negate");
 const Exp = createOperation(a => Math.exp(a), 1, "exp");
 const Ln = createOperation(a => Math.log(a), 1, "ln");
+const Sum = createOperation((...args) => args.reduce((a, b) => a + b, 0), 0, "sum");
+const Avg = createOperation((...args) => args.reduce((a, b) => a + b, 0) / args.length, 0, "avg");
 const parse = expression => {
     expression = expression.split(' ').filter(part => part.length > 0);
     let stack = [];
@@ -85,10 +88,10 @@ const parsePrefix = string => {
                 }
             } else if (operations.has(element)) {
                 let elems = stack.slice(stack.lastIndexOf(")", -operations.get(element)[1]) + 1, stack.length).reverse();
-                if (elems.length < operations.get(element)[1]) {
+                if (operations.get(element)[1] !== 0 && elems.length < operations.get(element)[1]) {
                     throw new InvalidNumberOfArgumentsError(element, index, `Not enough operands: expect ${operations.get(element)[1]}, but found ${elems.length}`);
                 }
-                if (elems.length > operations.get(element)[1]) {
+                if (operations.get(element)[1] !== 0 && elems.length > operations.get(element)[1]) {
                     throw new InvalidNumberOfArgumentsError(element, index, `Too many operands: expect ${operations.get(element)[1]}, but found ${elems.length}`);
                 }
                 stack = stack.slice(0, -operations.get(element)[1] - 1);
