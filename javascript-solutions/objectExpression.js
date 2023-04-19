@@ -5,30 +5,31 @@ const variables = new Map([
     ["y", 1],
     ["z", 2]
 ]);
-
-function Const(value) {
-    this.value = value;
+function createElement(toString, evaluate) {
+    const result = function (argument) {
+        this.value = argument;
+        this.getName = argument.toString();
+    }
+    result.prototype.toString = toString;
+    result.prototype.evaluate = evaluate;
+    result.prototype.prefix = result.prototype.toString;
+    return result;
 }
-Const.prototype.toString = function () { return (this.value).toString() };
-Const.prototype.evaluate = function () { return this.value };
-Const.prototype.prefix = Const.toString;
+const Const = createElement(function () { return (this.value).toString() }, function () { return this.value });
 
-function Variable(name) {
-    this.name = name;
-}
-Variable.prototype.toString = function () { return this.name };
-Variable.prototype.evaluate = function (...args) { return args[variables.get(this.name)] };
-Variable.prototype.prefix = Variable.prototype.toString;
-function AbstractOperation(string, ...args) {
-    this.getName = () => string;
+const Variable = createElement(function () { return this.getName }, function (...args) { return args[variables.get(this.getName)] });
+
+function AbstractOperation(f, string, ...args) {
+    this.f = f;
+    this.getName = string;
     this.args = args;
 }
 
 AbstractOperation.prototype.toString = function () {
-    return `${this.args.join(" ")} ${this.getName()}`;
+    return `${this.args.join(" ")} ${this.getName}`;
 }
 AbstractOperation.prototype.prefix = function () {
-    return `(${this.getName()} ${this.args.map(i => i.prefix()).join(" ")})`;
+    return `(${this.getName} ${this.args.map(i => i.prefix()).join(" ")})`;
 }
 AbstractOperation.prototype.evaluate = function (...args) {
     return this.f(...(this.args.map(i => i.evaluate(...args))));
@@ -36,11 +37,13 @@ AbstractOperation.prototype.evaluate = function (...args) {
 
 function createOperation(f, n, string) {
     const result = function () {
-        AbstractOperation.call(this, string, ...arguments);
+        AbstractOperation.call(this, f, string, ...arguments);
     }
-    operations.set(string, [result, n, f]);
     result.prototype = Object.create(AbstractOperation.prototype);
-    result.prototype.f = f;
+    result.f = f;
+    result.numberOfArguments = n;
+    result.getName = string;
+    operations.set(string, result);
     return result;
 }
 
@@ -58,9 +61,10 @@ const parse = expression => {
     let stack = [];
     expression.map(s => {
             if (operations.has(s)) {
-                let elems = stack.slice(-operations.get(s)[1]);
-                stack = stack.slice(0, -operations.get(s)[1]);
-                stack.push(new (operations.get(s)[0])(...elems));
+                const currentOperation = operations.get(s);
+                let elems = stack.slice(-currentOperation.numberOfArguments);
+                stack = stack.slice(0, -currentOperation.numberOfArguments);
+                stack.push(new currentOperation(...elems));
             } else if (variables.has(s)) {
                 stack.push(new Variable(s));
             } else {
@@ -72,32 +76,37 @@ const parse = expression => {
 }
 const parsePrefix = string => {
     string = string.replaceAll("(", " ( ").replaceAll(")", " ) ").split(" ").filter(part => part.length > 0);
-    let operationFlag = true;
+    let bracketFlag = false;
     let balance = 0;
+    let nextElement = null;
     let stack = string.reduceRight(function (stack, element, index) {
+            if (element !== "(" && bracketFlag) {
+                throw new BracketsError(element, index, `expect "(" before operation ${nextElement}`);
+            }
             if (element === ")") {
                 balance++;
                 stack.push(element);
-                operationFlag = true;
             } else if (element === "(") {
+                if (nextElement !== null && !operations.has(nextElement)) {
+                    throw new InvalidElementError(nextElement, index, "Expect operation after '('");
+                }
                 balance--;
                 if (balance < 0) {
                     throw new BracketsError(element, index, `missing ")"`);
                 }
-                if (operationFlag) {
-                    throw new InvalidElementError(element, index, `Expect operation, but found "${stack[stack.length - 1]}"`);
-                }
+                bracketFlag = false;
             } else if (operations.has(element)) {
-                let elems = stack.slice(stack.lastIndexOf(")", -operations.get(element)[1]) + 1, stack.length).reverse();
-                if (operations.get(element)[1] !== 0 && elems.length < operations.get(element)[1]) {
-                    throw new InvalidNumberOfArgumentsError(element, index, `Not enough operands: expect ${operations.get(element)[1]}, but found ${elems.length}`);
+                const currentOperation = operations.get(element);
+                let elems = stack.slice(stack.lastIndexOf(")") + 1, stack.length).reverse();
+                if (currentOperation.numberOfArguments !== 0 && elems.length < currentOperation.numberOfArguments) {
+                    throw new InvalidNumberOfArgumentsError(element, index, `Not enough operands: expect ${currentOperation.numberOfArguments}, but found ${elems.length}`);
                 }
-                if (operations.get(element)[1] !== 0 && elems.length > operations.get(element)[1]) {
-                    throw new InvalidNumberOfArgumentsError(element, index, `Too many operands: expect ${operations.get(element)[1]}, but found ${elems.length}`);
+                if (currentOperation.numberOfArguments !== 0 && elems.length > currentOperation.numberOfArguments) {
+                    throw new InvalidNumberOfArgumentsError(element, index, `Too many operands: expect ${currentOperation.numberOfArguments}, but found ${elems.length}`);
                 }
-                stack = stack.slice(0, -operations.get(element)[1] - 1);
-                stack.push(new (operations.get(element)[0])(...elems));
-                operationFlag = false;
+                stack = stack.slice(0, -elems.length - 1);
+                stack.push(new currentOperation(...elems));
+                bracketFlag = true;
             } else if (variables.has(element)) {
                 stack.push(new Variable((element), index));
             } else {
@@ -107,7 +116,7 @@ const parsePrefix = string => {
                     throw new InvalidElementError(element, index, `Unexpected element ${element}`);
                 }
             }
-
+            nextElement = element;
             return stack;
         }, []
     )
