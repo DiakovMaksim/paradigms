@@ -1,5 +1,6 @@
 (defn constant [value] (fn [_] value))
 (defn variable [name] (fn [vars] (get vars name)))
+
 (defn operation [f] (fn [& args] (fn [vars] (apply f (map #(% vars) args)))))
 (def add (operation +))
 (def subtract (operation -))
@@ -19,11 +20,13 @@
 (defn meansqEval [& args] (/ (reduce + (map #(* % %) args)) (count args)))
 (def meansq (operation meansqEval))
 (def rms (operation (fn [& args] (Math/sqrt (apply meansqEval args)))))
+
 (def symbols {'+ add, '- subtract, '* multiply, '/ divide, 'negate negate
 , 'sum sum, 'avg avg, 'pow pow, 'log log, 'exp exp, 'ln ln, 'sumexp sumexp, 'lse lse, 'meansq meansq, 'rms rms});extra
+
 (defn parseFunction [input] (let [inputList (read-string (str input))]
                               (if (number? inputList)
                                 (constant inputList)
                                 (if (symbol? inputList)
                                   (variable (str inputList))
-                                  (apply (get symbols (first inputList)) (map parseFunction (pop inputList)))))))
+                                  (apply (get symbols (first inputList)) (map parseFunction (rest inputList)))))))
