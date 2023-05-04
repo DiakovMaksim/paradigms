@@ -63,13 +63,15 @@
 (defn RMS [& args] (OperationConstructor rmsEval, "rms", args))
 (defn ArcTan [& args] (OperationConstructor #(Math/atan %), "atan", args))
 (defn ArcTan2 [& args] (OperationConstructor #(Math/atan2 %1 %2), "atan2", args))
+(defn Sin [& args] (OperationConstructor #(Math/sin %), "sin", args))
+(defn Cos [& args] (OperationConstructor #(Math/cos %), "cos", args))
 (def VariablePrototype {:evaluate       (fn [this variables] (variables (_name this)))
                         :toString       (fn [this] (_name this))})
 (def VariableConstructor (constructor (fn [this, name] (assoc this :name name)) VariablePrototype))
 (defn Variable [name] (VariableConstructor name))
 (def objSymbols {'const  Constant, 'var Variable, '/ Divide, 'negate Negate, '* Multiply, '- Subtract, '+ Add,
                  'sum    Sum, 'avg Avg, 'pow Pow, 'log Log, 'exp Exp, 'ln Ln, 'atan ArcTan, 'atan2 ArcTan2, ;extra
-                 'sumexp Sumexp, 'lse LSE, 'meansq Meansq, 'rms RMS}) ;hard
+                 'sumexp Sumexp, 'lse LSE, 'meansq Meansq, 'rms RMS, 'sin Sin, 'cos Cos}) ;hard
 (defn parse [input operationSet] (
                                             cond (number? input) ((operationSet 'const) input)
                                                  (list? input) (apply (get operationSet (first input)) (mapv #(parse % operationSet) (rest input)))
