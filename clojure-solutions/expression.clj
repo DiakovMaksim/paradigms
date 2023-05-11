@@ -1,4 +1,5 @@
 (load-file "proto.clj")
+(load-file "parser.clj")
 (defn constant [value] (fn [_] value))
 (defn variable [name] (fn [vars] (get vars name)))
 (defn operation [f] (fn [& args] (fn [vars] (apply f (map #(% vars) args)))))
@@ -36,13 +37,16 @@
 (def _f (field :f))
 (def toString (method :toString))
 (def evaluate (method :evaluate))
+(def toStringPostfix (method :toStringPostfix))
 (def Operation {:toString (fn [this] (str "(" (_name this) " " (clojure.string/join " " (map #(toString %) (_args this))) ")"))
                 :evaluate (fn [this vars]
-                            (apply (_f this) (map #(evaluate % vars) (_args this))))})
+                            (apply (_f this) (map #(evaluate % vars) (_args this))))
+                :toStringPostfix (fn [this] (str "(" (clojure.string/join " "(map #(toStringPostfix %) (_args this))) " " (_name this) ")"))})
 (def OperationConstructor (constructor (fn [this, f, name, args]
                                          (assoc this :f f :name name :args args)) Operation))
-(def ConstantPrototype {:evaluate (fn [this _] (_args this))
-                        :toString (fn [this] (str (_args this)))})
+(def ConstantPrototype {:evaluate (fn [this _] (read-string (str (_args this))))
+                        :toString (fn [this] (str (_args this)))
+                        :toStringPostfix (fn [this] (str (_args this)))})
 (def ConstantConstructor (constructor (fn [this, value] (assoc this :args value)) ConstantPrototype))
 (defn Constant [value] (ConstantConstructor value))
 (defn Add [& args] (OperationConstructor +, "+", args))
@@ -65,7 +69,8 @@
 (defn Sin [& args] (OperationConstructor #(Math/sin %), "sin", args))
 (defn Cos [& args] (OperationConstructor #(Math/cos %), "cos", args))
 (def VariablePrototype {:evaluate (fn [this variables] (variables (_name this)))
-                        :toString (fn [this] (_name this))})
+                        :toString (fn [this] (_name this))
+                        :toStringPostfix (fn [this] (_name this))})
 (def VariableConstructor (constructor (fn [this, name] (assoc this :name name)) VariablePrototype))
 (defn Variable [name] (VariableConstructor name))
 (def objSymbols {'const  Constant, 'var Variable, '/ Divide, 'negate Negate, '* Multiply, '- Subtract, '+ Add,
@@ -76,3 +81,27 @@
                                        :else ((operationSet 'var) (str input))))
 (defn parseFunction [expr] (parse (read-string expr) funcSymbols))
 (defn parseObject [expr] (parse (read-string expr) objSymbols))
+(def *all-chars (mapv char (range 0 128)))
+(def *space (+char (apply str (filter #(Character/isWhitespace %) *all-chars))))
+(def *ws (+ignore (+star *space)))
+(def *digit (+char "0123456789"))
+(def *number (+map Constant (+str (+seq *ws (+opt (+char "-")) *ws (+str (+plus *digit)) (+opt (+char ".")) (+opt (+str (+plus *digit))) *ws))))
+(def *var (+map Variable (+str (+seq *ws (+str (+plus (+char "xyzXYZ"))) *ws))))
+(def *symbol (+char (apply str (filter #(contains? objSymbols %) *all-chars))))
+(def operations  (+char "+-*/"))
+(def unaryOp (+str (+seq (+char "n") (+char "e") (+char "g") (+char "a") (+char "t") (+char "e"))))
+(def parseObjectPostfix
+  (letfn [(*expression
+            []
+            (+map #(apply (objSymbols (symbol (str (last %)))) (butlast %))
+                  (+or
+                    (+seq *ws (+opt (+ignore (+char "("))) *ws (*value) *ws unaryOp *ws (+opt (+ignore (+char ")"))) *ws)
+                    (+seq *ws (+opt (+ignore (+char "("))) *ws (*value) *ws *ws (*value) *ws operations *ws (+opt (+ignore (+char ")"))) *ws))))
+          (*value
+            []
+            (+or
+              *var
+              *number
+              (delay (*expression))))]
+    (+parser (+seqn 0 *ws (delay (*value)) *ws))))
+(print (toStringPostfix (parseObjectPostfix "(y negate)")))
