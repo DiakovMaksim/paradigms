@@ -68,12 +68,14 @@
 (defn ArcTan2 [& args] (OperationConstructor #(Math/atan2 %1 %2), "atan2", args))
 (defn Sin [& args] (OperationConstructor #(Math/sin %), "sin", args))
 (defn Cos [& args] (OperationConstructor #(Math/cos %), "cos", args))
-(def VariablePrototype {:evaluate (fn [this variables] (variables (_name this)))
+(defn Inc [& args] (OperationConstructor #(+ % 1), "++", args))
+(defn Dec [& args] (OperationConstructor #(- % 1), "--", args))
+(def VariablePrototype {:evaluate (fn [this variables] (variables (clojure.string/lower-case (subs (_name this) 0 1))))
                         :toString (fn [this] (_name this))
                         :toStringPostfix (fn [this] (_name this))})
 (def VariableConstructor (constructor (fn [this, name] (assoc this :name name)) VariablePrototype))
 (defn Variable [name] (VariableConstructor name))
-(def objSymbols {'const  Constant, 'var Variable, '/ Divide, 'negate Negate, '* Multiply, '- Subtract, '+ Add,
+(def objSymbols {'const  Constant, 'var Variable, '++ Inc, '-- Dec, '/ Divide, 'negate Negate, '* Multiply, '- Subtract, '+ Add,
                  'sum    Sum, 'avg Avg, 'pow Pow, 'log Log, 'exp Exp, 'ln Ln, 'atan ArcTan, 'atan2 ArcTan2, ;extra
                  'sumexp Sumexp, 'lse LSE, 'meansq Meansq, 'rms RMS, 'sin Sin, 'cos Cos}) ;hard
 (defn parse [input operationSet] (cond (number? input) ((operationSet 'const) input)
@@ -89,7 +91,7 @@
 (def *var (+map Variable (+str (+seq *ws (+str (+plus (+char "xyzXYZ"))) *ws))))
 (def *symbol (+char (apply str (filter #(contains? objSymbols %) *all-chars))))
 (def operations  (+char "+-*/"))
-(def unaryOp (+str (+seq (+char "n") (+char "e") (+char "g") (+char "a") (+char "t") (+char "e"))))
+(def unaryOp (+or (+str (+seq (+char "+") (+char "+"))) (+str (+seq (+char "-") (+char "-"))) (+str (+seq (+char "n") (+char "e") (+char "g") (+char "a") (+char "t") (+char "e")))))
 (def parseObjectPostfix
   (letfn [(*expression
             []
