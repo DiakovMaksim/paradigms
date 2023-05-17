@@ -44,7 +44,7 @@
                 :toStringPostfix (fn [this] (str "(" (clojure.string/join " "(map #(toStringPostfix %) (_args this))) " " (_name this) ")"))})
 (def OperationConstructor (constructor (fn [this, f, name, args]
                                          (assoc this :f f :name name :args args)) Operation))
-(def ConstantPrototype {:evaluate (fn [this _] (read-string (str (_args this))))
+(def ConstantPrototype {:evaluate (fn [this _] (_args this))
                         :toString (fn [this] (str (_args this)))
                         :toStringPostfix (fn [this] (str (_args this)))})
 (def ConstantConstructor (constructor (fn [this, value] (assoc this :args value)) ConstantPrototype))
@@ -83,27 +83,26 @@
                                        :else ((operationSet 'var) (str input))))
 (defn parseFunction [expr] (parse (read-string expr) funcSymbols))
 (defn parseObject [expr] (parse (read-string expr) objSymbols))
-(def *all-chars (mapv char (range 0 128)))
+(def *all-chars (mapv char (range 0 256)))
 (def *space (+char (apply str (filter #(Character/isWhitespace %) *all-chars))))
 (def *ws (+ignore (+star *space)))
 (def *digit (+char "0123456789"))
-(def *number (+map Constant (+str (+seq *ws (+opt (+char "-")) *ws (+str (+plus *digit)) (+opt (+char ".")) (+opt (+str (+plus *digit))) *ws))))
+(def *num (+map #(Constant (read-string %)) (+str (+seq *ws (+opt (+char "-")) *ws (+str (+plus *digit)) (+opt (+char ".")) (+opt (+str (+plus *digit))) *ws))))
 (def *var (+map Variable (+str (+seq *ws (+str (+plus (+char "xyzXYZ"))) *ws))))
 (def *symbol (+char (apply str (filter #(contains? objSymbols %) *all-chars))))
-(def operations  (+char "+-*/"))
-(def unaryOp (+or (+str (+seq (+char "+") (+char "+"))) (+str (+seq (+char "-") (+char "-"))) (+str (+seq (+char "n") (+char "e") (+char "g") (+char "a") (+char "t") (+char "e")))))
+(def binaryOperations (+char (apply str (filter #(contains? objSymbols (symbol (str %))) *all-chars))))
+(def unaryOperations (+or (+str (+seq (+char "+") (+char "+"))) (+str (+seq (+char "-") (+char "-"))) (+str (+seq (+char "n") (+char "e") (+char "g") (+char "a") (+char "t") (+char "e")))))
 (def parseObjectPostfix
   (letfn [(*expression
             []
             (+map #(apply (objSymbols (symbol (str (last %)))) (butlast %))
                   (+or
-                    (+seq *ws (+opt (+ignore (+char "("))) *ws (*value) *ws unaryOp *ws (+opt (+ignore (+char ")"))) *ws)
-                    (+seq *ws (+opt (+ignore (+char "("))) *ws (*value) *ws *ws (*value) *ws operations *ws (+opt (+ignore (+char ")"))) *ws))))
+                    (+seq *ws (+opt (+ignore (+char "("))) *ws (*value) *ws unaryOperations *ws (+opt (+ignore (+char ")"))) *ws)
+                    (+seq *ws (+opt (+ignore (+char "("))) *ws (*value) *ws (*value) *ws binaryOperations *ws (+opt (+ignore (+char ")"))) *ws))))
           (*value
             []
             (+or
               *var
-              *number
+              *num
               (delay (*expression))))]
     (+parser (+seqn 0 *ws (delay (*value)) *ws))))
-(print (toStringPostfix (parseObjectPostfix "(y negate)")))
