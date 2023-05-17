@@ -106,3 +106,7 @@
               *num
               (delay (*expression))))]
     (+parser (+seqn 0 *ws (delay (*value)) *ws))))
+<<<<<<< HEAD
+=======
+(print (toStringPostfix (parseObjectPostfix "(y negate)")))
+>>>>>>> 083b8996f4e65538a8784d01812f0615311657c2
